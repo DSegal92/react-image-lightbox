@@ -3,7 +3,7 @@
   "version": "3.4.2",
   "description": "A lightbox component for React.js",
   "scripts": {
-    "build": "npm run lint && npm run build:demo && npm run build:umd",
+    "build": "npm run build:umd",
     "build:demo": "npm run clean:demo && cross-env NODE_ENV=production webpack --config webpack.config.demo.babel.js --bail",
     "build:umd": "npm run clean:umd && cross-env NODE_ENV=production webpack --config webpack.config.umd.babel.js --bail",
     "clean": "npm run clean:demo && npm run clean:umd",
@@ -17,11 +17,8 @@
   },
   "main": "dist/umd/react-image-lightbox.js",
   "files": [
-    "./dist"
+    "dist"
   ],
-  "directories": {
-    "dist": "./dist"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/fritz-c/react-image-lightbox.git"
