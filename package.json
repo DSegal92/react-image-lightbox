@@ -17,8 +17,11 @@
   },
   "main": "dist/umd/react-image-lightbox.js",
   "files": [
-    "dist"
+    "./dist"
   ],
+  "directories": {
+    "dist": "./dist"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/fritz-c/react-image-lightbox.git"
