@@ -4,7 +4,8 @@
  * @license Open source under the MIT License
  */
 
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import Modal from 'react-modal';
 import {
     translate,
@@ -45,7 +46,7 @@ if (_ieVersion < 10) {
     };
 }
 
-class ReactImageLightbox extends Component {
+class ReactImageLightbox extends React.Component {
     constructor(props) {
         super(props);
 
@@ -638,8 +639,13 @@ class ReactImageLightbox extends Component {
             this.scrollX = 0;
             this.scrollY += event.deltaY;
 
+            let newZoomLevel = this.state.zoomLevel - event.deltaY
+
+            if (event.deltaY < 0) { this.props.onZoomIn(newZoomLevel, 'Scroll'); }
+            if (event.deltaY > 0) { this.props.onZoomOut(newZoomLevel, 'Scroll'); }
+
             this.changeZoom(
-                this.state.zoomLevel - event.deltaY,
+                newZoomLevel,
                 event.clientX,
                 event.clientY
             );
@@ -652,6 +658,7 @@ class ReactImageLightbox extends Component {
     handleImageDoubleClick(event) {
         if (this.state.zoomLevel > MIN_ZOOM_LEVEL) {
             // A double click when zoomed in zooms all the way out
+            this.props.onZoomOut(MIN_ZOOM_LEVEL, 'Image Click')
             this.changeZoom(
                 MIN_ZOOM_LEVEL,
                 event.clientX,
@@ -659,6 +666,7 @@ class ReactImageLightbox extends Component {
             );
         } else {
             // A double click when zoomed all the way out zooms in
+            this.props.onZoomIn(( this.state.zoomLevel + ZOOM_BUTTON_INCREMENT_SIZE ), 'Image Click')
             this.changeZoom(
                 this.state.zoomLevel + ZOOM_BUTTON_INCREMENT_SIZE,
                 event.clientX,
@@ -1046,11 +1054,15 @@ class ReactImageLightbox extends Component {
     }
 
     handleZoomInButtonClick() {
-        this.changeZoom(this.state.zoomLevel + ZOOM_BUTTON_INCREMENT_SIZE);
+        let newZoomLevel = this.state.zoomLevel + ZOOM_BUTTON_INCREMENT_SIZE
+        this.props.onZoomIn(newZoomLevel, 'Button Click');
+        this.changeZoom(newZoomLevel);
     }
 
     handleZoomOutButtonClick() {
-        this.changeZoom(this.state.zoomLevel - ZOOM_BUTTON_INCREMENT_SIZE);
+        let newZoomLevel = this.state.zoomLevel - ZOOM_BUTTON_INCREMENT_SIZE
+        this.props.onZoomOut(newZoomLevel, 'Button Click');
+        this.changeZoom(newZoomLevel);
     }
 
     handleRotateLeftButtonClick() {
@@ -1462,7 +1474,7 @@ class ReactImageLightbox extends Component {
             <Modal
                 isOpen
                 onRequestClose={clickOutsideToClose ? this.requestClose : noop}
-                onAfterOpen={() => this.outerEl && this.outerEl.focus()} // Focus on the div with key handlers
+                onAfterOpen={() => { (this.outerEl && this.outerEl.focus()); this.props.onOpen() }} // Focus on the div with key handlers
                 style={modalStyle}
                 contentLabel={translate('Lightbox')}
             >
@@ -1647,6 +1659,9 @@ ReactImageLightbox.propTypes = {
     // Event Handlers
     //-----------------------------
 
+    // Open window event
+    onOpen: PropTypes.func,
+
     // Close window event
     // Should change the parent state such that the lightbox is not rendered
     onCloseRequest: PropTypes.func.isRequired,
@@ -1664,6 +1679,12 @@ ReactImageLightbox.propTypes = {
     // Called when an image fails to load
     // (imageSrc: string, srcType: string, errorEvent: object): void
     onImageLoadError: PropTypes.func,
+
+    // Called when the user zooms in on the image
+    onZoomIn: PropTypes.func,
+
+    // Called when the user zooms out on the image
+    onZoomOut: PropTypes.func,
 
     //-----------------------------
     // Download discouragement settings
@@ -1735,6 +1756,9 @@ ReactImageLightbox.defaultProps = {
     onMovePrevRequest: () => {},
     onMoveNextRequest: () => {},
     onImageLoadError:  () => {},
+    onOpen: () => {},
+    onZoomIn: () => {},
+    onZoomOut: () => {},
 
     discourageDownloads: false,
 

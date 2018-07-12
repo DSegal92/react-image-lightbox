@@ -1,6 +1,6 @@
 !function(root, factory) {
     "object" == typeof exports && "object" == typeof module ? module.exports = factory(require("react"), require("react-modal")) : "function" == typeof define && define.amd ? define([ "react", "react-modal" ], factory) : "object" == typeof exports ? exports.ReactImageLightbox = factory(require("react"), require("react-modal")) : root.ReactImageLightbox = factory(root.react, root["react-modal"]);
-}(this, function(__WEBPACK_EXTERNAL_MODULE_8__, __WEBPACK_EXTERNAL_MODULE_9__) {
+}(this, function(__WEBPACK_EXTERNAL_MODULE_11__, __WEBPACK_EXTERNAL_MODULE_12__) {
     /******/
     return function(modules) {
         /******/
@@ -165,14 +165,14 @@
                 for (var key in source) Object.prototype.hasOwnProperty.call(source, key) && (target[key] = source[key]);
             }
             return target;
-        }, _react = __webpack_require__(8), _react2 = _interopRequireDefault(_react), _reactModal = __webpack_require__(9), _reactModal2 = _interopRequireDefault(_reactModal), _util = __webpack_require__(3), _constant = __webpack_require__(1), _style = __webpack_require__(7), _style2 = _interopRequireDefault(_style), styles = _style2.default, _ieVersion = (0, 
+        }, _react = __webpack_require__(11), _react2 = _interopRequireDefault(_react), _propTypes = __webpack_require__(7), _propTypes2 = _interopRequireDefault(_propTypes), _reactModal = __webpack_require__(12), _reactModal2 = _interopRequireDefault(_reactModal), _util = __webpack_require__(3), _constant = __webpack_require__(1), _style = __webpack_require__(10), _style2 = _interopRequireDefault(_style), styles = _style2.default, _ieVersion = (0, 
         _util.getIEVersion)();
         _ieVersion < 10 && (styles = _extends({}, styles, {
             toolbarSide: styles.toolbarSide + " " + styles.toolbarSideNoFlex,
             toolbarLeftSide: styles.toolbarLeftSide + " " + styles.toolbarLeftSideNoFlex,
             toolbarRightSide: styles.toolbarRightSide + " " + styles.toolbarRightSideNoFlex
         }));
-        var ReactImageLightbox = function(_Component) {
+        var ReactImageLightbox = function(_React$Component) {
             function ReactImageLightbox(props) {
                 _classCallCheck(this, ReactImageLightbox);
                 var _this = _possibleConstructorReturn(this, (ReactImageLightbox.__proto__ || Object.getPrototypeOf(ReactImageLightbox)).call(this, props));
@@ -210,7 +210,7 @@
                 _this.requestClose = _this.requestClose.bind(_this), _this.requestMoveNext = _this.requestMoveNext.bind(_this), 
                 _this.requestMovePrev = _this.requestMovePrev.bind(_this), _this;
             }
-            return _inherits(ReactImageLightbox, _Component), _createClass(ReactImageLightbox, [ {
+            return _inherits(ReactImageLightbox, _React$Component), _createClass(ReactImageLightbox, [ {
                 key: "componentWillMount",
                 value: function() {
                     // Timeouts - always clear it before umount
@@ -537,15 +537,19 @@
                     if (Math.abs(event.deltaY) >= Math.abs(event.deltaX)) {
                         // If the vertical scroll amount was large enough, perform a zoom
                         if (event.stopPropagation(), Math.abs(event.deltaY) < yThreshold) return;
-                        this.scrollX = 0, this.scrollY += event.deltaY, this.changeZoom(this.state.zoomLevel - event.deltaY, event.clientX, event.clientY);
+                        this.scrollX = 0, this.scrollY += event.deltaY;
+                        var newZoomLevel = this.state.zoomLevel - event.deltaY;
+                        event.deltaY < 0 && this.props.onZoomIn(newZoomLevel, "Scroll"), event.deltaY > 0 && this.props.onZoomOut(newZoomLevel, "Scroll"), 
+                        this.changeZoom(newZoomLevel, event.clientX, event.clientY);
                     }
                 }
             }, {
                 key: "handleImageDoubleClick",
                 value: function(event) {
-                    this.state.zoomLevel > _constant.MIN_ZOOM_LEVEL ? // A double click when zoomed in zooms all the way out
-                    this.changeZoom(_constant.MIN_ZOOM_LEVEL, event.clientX, event.clientY) : // A double click when zoomed all the way out zooms in
-                    this.changeZoom(this.state.zoomLevel + _constant.ZOOM_BUTTON_INCREMENT_SIZE, event.clientX, event.clientY);
+                    this.state.zoomLevel > _constant.MIN_ZOOM_LEVEL ? (// A double click when zoomed in zooms all the way out
+                    this.props.onZoomOut(_constant.MIN_ZOOM_LEVEL, "Image Click"), this.changeZoom(_constant.MIN_ZOOM_LEVEL, event.clientX, event.clientY)) : (// A double click when zoomed all the way out zooms in
+                    this.props.onZoomIn(this.state.zoomLevel + _constant.ZOOM_BUTTON_INCREMENT_SIZE, "Image Click"), 
+                    this.changeZoom(this.state.zoomLevel + _constant.ZOOM_BUTTON_INCREMENT_SIZE, event.clientX, event.clientY));
                 }
             }, {
                 key: "shouldHandleEvent",
@@ -828,12 +832,14 @@
             }, {
                 key: "handleZoomInButtonClick",
                 value: function() {
-                    this.changeZoom(this.state.zoomLevel + _constant.ZOOM_BUTTON_INCREMENT_SIZE);
+                    var newZoomLevel = this.state.zoomLevel + _constant.ZOOM_BUTTON_INCREMENT_SIZE;
+                    this.props.onZoomIn(newZoomLevel, "Button Click"), this.changeZoom(newZoomLevel);
                 }
             }, {
                 key: "handleZoomOutButtonClick",
                 value: function() {
-                    this.changeZoom(this.state.zoomLevel - _constant.ZOOM_BUTTON_INCREMENT_SIZE);
+                    var newZoomLevel = this.state.zoomLevel - _constant.ZOOM_BUTTON_INCREMENT_SIZE;
+                    this.props.onZoomOut(newZoomLevel, "Button Click"), this.changeZoom(newZoomLevel);
                 }
             }, {
                 key: "handleRotateLeftButtonClick",
@@ -1083,7 +1089,7 @@
                         isOpen: !0,
                         onRequestClose: clickOutsideToClose ? this.requestClose : noop,
                         onAfterOpen: function() {
-                            return _this14.outerEl && _this14.outerEl.focus();
+                            _this14.outerEl && _this14.outerEl.focus(), _this14.props.onOpen();
                         },
                         style: modalStyle,
                         contentLabel: (0, _util.translate)("Lightbox")
@@ -1243,99 +1249,108 @@
                     _defineProperty({}, isOldIE ? "msTransform" : "transform", 0 === transforms.length ? "none" : transforms.join(" "));
                 }
             } ]), ReactImageLightbox;
-        }(_react.Component);
+        }(_react2.default.Component);
         ReactImageLightbox.propTypes = {
             //-----------------------------
             // Image sources
             //-----------------------------
             // Main display image url
-            mainSrc: _react.PropTypes.string.isRequired,
+            mainSrc: _propTypes2.default.string.isRequired,
             // eslint-disable-line react/no-unused-prop-types
             // Previous display image url (displayed to the left)
             // If left undefined, movePrev actions will not be performed, and the button not displayed
-            prevSrc: _react.PropTypes.string,
+            prevSrc: _propTypes2.default.string,
             // Next display image url (displayed to the right)
             // If left undefined, moveNext actions will not be performed, and the button not displayed
-            nextSrc: _react.PropTypes.string,
+            nextSrc: _propTypes2.default.string,
             //-----------------------------
             // Image thumbnail sources
             //-----------------------------
             // Thumbnail image url corresponding to props.mainSrc
-            mainSrcThumbnail: _react.PropTypes.string,
+            mainSrcThumbnail: _propTypes2.default.string,
             // eslint-disable-line react/no-unused-prop-types
             // Thumbnail image url corresponding to props.prevSrc
-            prevSrcThumbnail: _react.PropTypes.string,
+            prevSrcThumbnail: _propTypes2.default.string,
             // eslint-disable-line react/no-unused-prop-types
             // Thumbnail image url corresponding to props.nextSrc
-            nextSrcThumbnail: _react.PropTypes.string,
+            nextSrcThumbnail: _propTypes2.default.string,
             // eslint-disable-line react/no-unused-prop-types
             //-----------------------------
             // Event Handlers
             //-----------------------------
+            // Open window event
+            onOpen: _propTypes2.default.func,
             // Close window event
             // Should change the parent state such that the lightbox is not rendered
-            onCloseRequest: _react.PropTypes.func.isRequired,
+            onCloseRequest: _propTypes2.default.func.isRequired,
             // Move to previous image event
             // Should change the parent state such that props.prevSrc becomes props.mainSrc,
             //  props.mainSrc becomes props.nextSrc, etc.
-            onMovePrevRequest: _react.PropTypes.func,
+            onMovePrevRequest: _propTypes2.default.func,
             // Move to next image event
             // Should change the parent state such that props.nextSrc becomes props.mainSrc,
             //  props.mainSrc becomes props.prevSrc, etc.
-            onMoveNextRequest: _react.PropTypes.func,
+            onMoveNextRequest: _propTypes2.default.func,
             // Called when an image fails to load
             // (imageSrc: string, srcType: string, errorEvent: object): void
-            onImageLoadError: _react.PropTypes.func,
+            onImageLoadError: _propTypes2.default.func,
+            // Called when the user zooms in on the image
+            onZoomIn: _propTypes2.default.func,
+            // Called when the user zooms out on the image
+            onZoomOut: _propTypes2.default.func,
             //-----------------------------
             // Download discouragement settings
             //-----------------------------
             // Enable download discouragement (prevents [right-click -> Save Image As...])
-            discourageDownloads: _react.PropTypes.bool,
+            discourageDownloads: _propTypes2.default.bool,
             //-----------------------------
             // Animation settings
             //-----------------------------
             // Disable all animation
-            animationDisabled: _react.PropTypes.bool,
+            animationDisabled: _propTypes2.default.bool,
             // Disable animation on actions performed with keyboard shortcuts
-            animationOnKeyInput: _react.PropTypes.bool,
+            animationOnKeyInput: _propTypes2.default.bool,
             // Animation duration (ms)
-            animationDuration: _react.PropTypes.number,
+            animationDuration: _propTypes2.default.number,
             //-----------------------------
             // Keyboard shortcut settings
             //-----------------------------
             // Required interval of time (ms) between key actions
             // (prevents excessively fast navigation of images)
-            keyRepeatLimit: _react.PropTypes.number,
+            keyRepeatLimit: _propTypes2.default.number,
             // Amount of time (ms) restored after each keyup
             // (makes rapid key presses slightly faster than holding down the key to navigate images)
-            keyRepeatKeyupBonus: _react.PropTypes.number,
+            keyRepeatKeyupBonus: _propTypes2.default.number,
             //-----------------------------
             // Image info
             //-----------------------------
             // Image title
-            imageTitle: _react.PropTypes.node,
+            imageTitle: _propTypes2.default.node,
             // Image caption
-            imageCaption: _react.PropTypes.node,
+            imageCaption: _propTypes2.default.node,
             //-----------------------------
             // Lightbox style
             //-----------------------------
             // Set z-index style, etc., for the parent react-modal (format: https://github.com/reactjs/react-modal#styles )
-            reactModalStyle: _react.PropTypes.object,
+            reactModalStyle: _propTypes2.default.object,
             // Padding (px) between the edge of the window and the lightbox
-            imagePadding: _react.PropTypes.number,
+            imagePadding: _propTypes2.default.number,
             //-----------------------------
             // Other
             //-----------------------------
             // Array of custom toolbar buttons
-            toolbarButtons: _react.PropTypes.arrayOf(_react.PropTypes.node),
+            toolbarButtons: _propTypes2.default.arrayOf(_propTypes2.default.node),
             // When true, clicks outside of the image close the lightbox
-            clickOutsideToClose: _react.PropTypes.bool,
+            clickOutsideToClose: _propTypes2.default.bool,
             // Set to false to disable zoom functionality and hide zoom buttons
-            enableZoom: _react.PropTypes.bool
+            enableZoom: _propTypes2.default.bool
         }, ReactImageLightbox.defaultProps = {
             onMovePrevRequest: function() {},
             onMoveNextRequest: function() {},
             onImageLoadError: function() {},
+            onOpen: function() {},
+            onZoomIn: function() {},
+            onZoomOut: function() {},
             discourageDownloads: !1,
             animationDisabled: !1,
             animationOnKeyInput: !1,
@@ -1473,6 +1488,71 @@
             }, list;
         };
     }, /* 6 */
+    /***/
+    function(module, exports, __webpack_require__) {
+        /**
+	 * Copyright (c) 2013-present, Facebook, Inc.
+	 *
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
+	 */
+        "use strict";
+        function emptyFunction() {}
+        var ReactPropTypesSecret = __webpack_require__(8);
+        module.exports = function() {
+            function shim(props, propName, componentName, location, propFullName, secret) {
+                if (secret !== ReactPropTypesSecret) {
+                    var err = new Error("Calling PropTypes validators directly is not supported by the `prop-types` package. Use PropTypes.checkPropTypes() to call them. Read more at http://fb.me/use-check-prop-types");
+                    throw err.name = "Invariant Violation", err;
+                }
+            }
+            function getShim() {
+                return shim;
+            }
+            shim.isRequired = shim;
+            // Important!
+            // Keep this list in sync with production version in `./factoryWithTypeCheckers.js`.
+            var ReactPropTypes = {
+                array: shim,
+                bool: shim,
+                func: shim,
+                number: shim,
+                object: shim,
+                string: shim,
+                symbol: shim,
+                any: shim,
+                arrayOf: getShim,
+                element: shim,
+                instanceOf: getShim,
+                node: shim,
+                objectOf: getShim,
+                oneOf: getShim,
+                oneOfType: getShim,
+                shape: getShim,
+                exact: getShim
+            };
+            return ReactPropTypes.checkPropTypes = emptyFunction, ReactPropTypes.PropTypes = ReactPropTypes, 
+            ReactPropTypes;
+        };
+    }, /* 7 */
+    /***/
+    function(module, exports, __webpack_require__) {
+        // By explicitly using `prop-types` you are opting into new production behavior.
+        // http://fb.me/prop-types-in-prod
+        module.exports = __webpack_require__(6)();
+    }, /* 8 */
+    /***/
+    function(module, exports) {
+        /**
+	 * Copyright (c) 2013-present, Facebook, Inc.
+	 *
+	 * This source code is licensed under the MIT license found in the
+	 * LICENSE file in the root directory of this source tree.
+	 */
+        "use strict";
+        var ReactPropTypesSecret = "SECRET_DO_NOT_PASS_THIS_OR_YOU_WILL_BE_FIRED";
+        module.exports = ReactPropTypesSecret;
+    }, /* 9 */
     /***/
     function(module, exports, __webpack_require__) {
         function addStylesToDom(styles, options) {
@@ -1616,7 +1696,7 @@
                 return textStore[index] = replacement, textStore.filter(Boolean).join("\n");
             };
         }();
-    }, /* 7 */
+    }, /* 10 */
     /***/
     function(module, exports, __webpack_require__) {
         // style-loader: Adds some css to the DOM by adding a <style> tag
@@ -1624,16 +1704,16 @@
         var content = __webpack_require__(4);
         "string" == typeof content && (content = [ [ module.id, content, "" ] ]);
         // add the styles to the DOM
-        __webpack_require__(6)(content, {});
+        __webpack_require__(9)(content, {});
         content.locals && (module.exports = content.locals);
-    }, /* 8 */
+    }, /* 11 */
     /***/
     function(module, exports) {
-        module.exports = __WEBPACK_EXTERNAL_MODULE_8__;
-    }, /* 9 */
+        module.exports = __WEBPACK_EXTERNAL_MODULE_11__;
+    }, /* 12 */
     /***/
     function(module, exports) {
-        module.exports = __WEBPACK_EXTERNAL_MODULE_9__;
+        module.exports = __WEBPACK_EXTERNAL_MODULE_12__;
     } ]);
 });
 //# sourceMappingURL=react-image-lightbox.js.map
